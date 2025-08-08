@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class MaterialAgent:
+class SoilAgent:
     def __init__(self, model="gpt-4o"):
         self.model = model
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -26,7 +26,7 @@ class MaterialAgent:
                         "content": [
                             {
                                 "type": "text",
-                                "text": "당신은 장난감 재료분석 전문가입니다. 이 장난감의 주요 재료를 분석해주세요:\n재료: 플라스틱, 금속, 나무, 섬유 중 하나\n\n반드시 순수 JSON 형식으로만 답변하세요. 마크다운 코드 블록(```)을 사용하지 마세요:\n{\"material\": \"재료\"}"
+                                "text": "장난감 오염 상태를 분석하세요. JSON 형식으로만 답변하세요. 마크다운 코드 블록(```)을 사용하지 마세요:\n{\"soil\": \"상태\"}\n상태: 깨끗, 약간 더러움, 더러움"
                             },
                             {
                                 "type": "image_url",
@@ -39,14 +39,13 @@ class MaterialAgent:
                     }
                 ],
                 max_completion_tokens=100,
-                temperature=0.0,
-                timeout=30
+                temperature=0.0
             )
             result = response.choices[0].message.content
             if result is not None:
                 result = result.strip()
             else:
-                result = '{"material": "플라스틱"}'
+                result = '{"soil": "깨끗"}'
             
             # 토큰 사용량 추가
             usage = response.usage
@@ -55,9 +54,9 @@ class MaterialAgent:
                 "completion_tokens": usage.completion_tokens if usage else 0,
                 "total_tokens": usage.total_tokens if usage else 0
             }
-            print(f"MaterialAgent 응답: {result} (토큰: {token_info['total_tokens']})")
+            print(f"SoilAgent 응답: {result} (토큰: {token_info['total_tokens']})")
             
             return result, token_info
         except Exception as e:
-            print(f"MaterialAgent 에러: {e}")
-            return '{"material": "플라스틱"}', {"total_tokens": 0}
+            print(f"SoilAgent 에러: {e}")
+            return '{"soil": "깨끗"}', {"total_tokens": 0}

@@ -77,7 +77,7 @@ class TypeAgent:
             }
             print(f"TypeAgent 응답: {result} (토큰: {token_info['total_tokens']})")
             
-            return result
+            return result, token_info
         except Exception as e:
             print(f"TypeAgent 에러: {e}")
-            return '{"toy_type": "기타", "battery": "불명", "size": "불명"}' 
+            return '{"toy_type": "기타", "battery": "불명", "size": "불명"}', {"total_tokens": 0} 

@@ -56,7 +56,7 @@ class DamageAgent:
             }
             print(f"DamageAgent 응답: {result} (토큰: {token_info['total_tokens']})")
             
-            return result
+            return result, token_info
         except Exception as e:
             print(f"DamageAgent 에러: {e}")
-            return '{"damage": "없음"}'
+            return '{"damage": "없음"}', {"total_tokens": 0}
