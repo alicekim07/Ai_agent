@@ -1,2 +1,22 @@
+# 환경 변수
 .env
+
+# Python cache
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Package build
+*.egg-info/
+*.egg
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,7 +1,7 @@
 import streamlit as st
 import traceback
-from supervisor_agent import SupervisorAgent
-from image_input import get_image_streamlit
+from ai_agent.supervisor_agent import SupervisorAgent
+from ai_agent.image_input import get_image_streamlit
 
 def main():
     st.set_page_config(

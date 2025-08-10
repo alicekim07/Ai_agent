@@ -11,32 +11,35 @@ class DamageAgent:
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def analyze(self, image_bytes):
-        # 이미지를 base64로 인코딩
-        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
-        return self.analyze_with_base64(image_base64)
+        # 바이너리 이미지 데이터를 직접 사용
+        system_prompt = """
+        당신은 장난감 파손 여부 판별 전문가입니다.
+        이미지를 분석하여 파손 상태를 판별하세요.
 
-    def analyze_with_base64(self, image_base64):
-        # 이미 인코딩된 이미지를 사용
+        가능한 상태:
+        - 없음
+        - 미세한 파손
+        - 심각한 파손
+
+        반드시 순수 JSON 형식으로만 답변하세요.
+        마크다운 코드 블록(```)은 사용하지 마세요.
+
+        예시:
+        {"damage": "상태"}
+        """
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "당신은 장난감 파손여부판별 전문가 입니다. 이 장난감의 파손 여부를 분석해주세요:\n상태: 없음, 미세한 파손, 심각한 파손 중 하나\n\n반드시 순수 JSON 형식으로만 답변하세요. 마크다운 코드 블록(```)을 사용하지 마세요:\n{\"damage\": \"상태\"}"
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/png;base64,{image_base64}",
-                                    "detail": "low"
-                                }
-                            }
-                        ]
-                    }
+                messages = [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": [
+                        {"type": "text", "text": "다음 이미지의 장난감 파손 여부를 분석해주세요."},
+                        {"type": "image_url", "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}",
+                            "detail": "low"
+                        }}
+                    ]}
                 ],
                 max_completion_tokens=100,
                 temperature=0.0
