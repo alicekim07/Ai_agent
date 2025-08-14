@@ -7,16 +7,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class TypeAgent:
-    def __init__(self, model="gemini-1.5-flash"):
+    def __init__(self, model="gemini-2.5-flash-lite"):
         self.model = model
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.client = genai.GenerativeModel(model_name=self.model)
 
-    def analyze(self, front_image, left_image):
-        # 2개 이미지를 분석하여 종합적인 판단
+    def analyze(self, front_image, left_image, rear_image, right_image):
+        # 4개 이미지를 분석하여 종합적인 판단
         system_prompt = """
         당신은 장난감 종류 및 특성 분석 전문가입니다. 
-        앞면과 왼쪽 2개 각도에서 촬영된 이미지를 분석하여 종합적인 판단을 내려주세요.
+        앞면, 왼쪽, 뒷면, 오른쪽 4개 각도에서 촬영된 이미지를 분석하여 종합적인 판단을 내려주세요.
         
         분석해야 할 항목:
         1. type: {피규어, 모형(=피규어로 매핑), 자동차 장난감, 변신 로봇, 건전지 장난감, 비건전지 장난감, 인형, 블록, 공, 아동 도서, 플라스틱 부품, 나무 장난감, 보행기, 탈것, 기타}
@@ -26,6 +26,8 @@ class TypeAgent:
         각도별 분석 지침:
         - 앞면: 전체적인 모양과 특징 파악
         - 왼쪽: 측면 구조와 부품 상태 확인
+        - 뒷면: 뒷면 구조와 특징 확인
+        - 오른쪽: 오른쪽 측면 구조와 특징 확인
 
         예시:
         - 모형 로봇 → type: "모형", battery: "비건전지", size: "중간"
@@ -39,7 +41,7 @@ class TypeAgent:
         try:
             # Gemini API용 이미지 데이터 준비
             images = []
-            for img_bytes in [front_image, left_image]:
+            for img_bytes in [front_image, left_image, rear_image, right_image]:
                 try:
                     # 바이트 데이터를 PIL Image로 변환
                     import io
@@ -56,7 +58,7 @@ class TypeAgent:
             response = self.client.generate_content(
                 contents=[
                     system_prompt,
-                    "이 장난감의 종류, 건전지 사용 여부, 크기를 2개 각도에서 분석해주세요.",
+                    "이 장난감의 종류, 건전지 사용 여부, 크기를 4개 각도에서 분석해주세요.",
                     *images
                 ],
                 generation_config=genai.types.GenerationConfig(

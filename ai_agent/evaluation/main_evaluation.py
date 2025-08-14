@@ -74,33 +74,39 @@ class ImprovedCSVDonationEvaluator:
                 if img_no not in existing_images:
                     continue
                 
-                # 이미지 파일 경로 구성 (2개 이미지만 사용)
+                # 이미지 파일 경로 구성 (4개 이미지 사용)
                 front_img = f"img_{img_no}_front"
                 left_img = f"img_{img_no}_left"
+                rear_img = f"img_{img_no}_rear"
+                right_img = f"img_{img_no}_right"
                 
                 image_paths = {
                     'front': images_dir / f"{front_img}.png",
-                    'left': images_dir / f"{left_img}.png"
+                    'left': images_dir / f"{left_img}.png",
+                    'rear': images_dir / f"{rear_img}.png",
+                    'right': images_dir / f"{right_img}.png"
                 }
                 
-                # 이미지 파일 존재 확인 (2개 이미지만)
+                # 이미지 파일 존재 확인 (4개 이미지)
                 if not all(path.exists() for path in image_paths.values()):
-                    print(f"⚠️ 2개 이미지를 모두 찾을 수 없습니다: {front_img}")
+                    print(f"⚠️ 4개 이미지를 모두 찾을 수 없습니다: {front_img}")
                     continue
                 
-                print(f"🔍 [{processed_count+1}] {front_img} (2개 각도) 분석 중...")
+                print(f"🔍 [{processed_count+1}] {front_img} (4개 각도) 분석 중...")
                 
-                # 2개 이미지 파일 읽기
+                # 4개 이미지 파일 읽기
                 try:
                     front_image_bytes = open(image_paths['front'], 'rb').read()
                     left_image_bytes = open(image_paths['left'], 'rb').read()
+                    rear_image_bytes = open(image_paths['rear'], 'rb').read()
+                    right_image_bytes = open(image_paths['right'], 'rb').read()
                 except Exception as e:
                     print(f"❌ 이미지 파일 읽기 실패: {e}")
                     continue
                 
-                # AI 에이전트로 분석 (2개 이미지만 전달)
+                # AI 에이전트로 분석 (4개 이미지 전달)
                 try:
-                    ai_result = self.supervisor.process(front_image_bytes, left_image_bytes)
+                    ai_result = self.supervisor.process(front_image_bytes, left_image_bytes, rear_image_bytes, right_image_bytes)
                     
                     # 실제 기부 가능 여부 (ground truth)
                     ground_truth = row['기부 가능 여부 (리사이클링)']

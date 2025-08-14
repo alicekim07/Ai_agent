@@ -6,16 +6,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class SoilAgent:
-    def __init__(self, model="gemini-1.5-flash"):
+    def __init__(self, model="gemini-2.5-flash-lite"):
         self.model = model
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.client = genai.GenerativeModel(model_name=self.model)
 
-    def analyze(self, front_image, left_image):
-        # 2개 이미지를 분석하여 오염 상태 판별
+    def analyze(self, front_image, left_image, rear_image, right_image):
+        # 4개 이미지를 분석하여 오염 상태 판별
         system_prompt = """
         당신은 장난감 오염 상태 분석 전문가입니다.
-        앞면과 왼쪽 2개 각도에서 촬영된 이미지를 분석하여 종합적인 오염 상태를 판별하세요.
+        앞면, 왼쪽, 뒷면, 오른쪽 4개 각도에서 촬영된 이미지를 분석하여 종합적인 오염 상태를 판별하세요.
         
         분석 결과를 다음 JSON 형식으로만 반환하세요.
         마크다운 코드 블록(```)은 절대 사용하지 마세요.
@@ -29,7 +29,7 @@ class SoilAgent:
         - 더러움: 심한 오염이나 위생상 문제
 
         상세설명 예시:
-        - 깨끗: "2개 각도 모두 오염 없음, 기부 적합"
+        - 깨끗: "4개 각도 모두 오염 없음, 기부 적합"
         - 보통: "일부 각도에서 약간의 사용 흔적, 세척 후 기부 가능"
         - 약간 더러움: "여러 각도에서 얼룩이나 먼지 확인, 세척 필요"
         - 더러움: "여러 각도에서 심한 오염 확인, 위생상 기부 불가"
@@ -39,7 +39,7 @@ class SoilAgent:
         try:
             # Gemini API용 이미지 데이터 준비
             images = []
-            for img_bytes in [front_image, left_image]:
+            for img_bytes in [front_image, left_image, rear_image, right_image]:
                 try:
                     # 바이트 데이터를 PIL Image로 변환
                     import io
@@ -56,7 +56,7 @@ class SoilAgent:
             response = self.client.generate_content(
                 contents=[
                     system_prompt,
-                    "다음 2개 각도 이미지의 장난감 오염 상태를 종합적으로 분석해주세요.",
+                    "다음 4개 각도 이미지의 장난감 오염 상태를 종합적으로 분석해주세요.",
                     *images
                 ],
                 generation_config=genai.types.GenerationConfig(

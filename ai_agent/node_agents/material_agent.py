@@ -7,16 +7,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class MaterialAgent:
-    def __init__(self, model="gemini-1.5-flash"):
+    def __init__(self, model="gemini-2.5-flash-lite"):
         self.model = model
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.client = genai.GenerativeModel(model_name=self.model)
 
-    def analyze(self, front_image, left_image):
-        # 2개 이미지를 분석하여 재료 판별
+    def analyze(self, front_image, left_image, rear_image, right_image):
+        # 4개 이미지를 분석하여 재료 판별
         system_prompt = """
         당신은 장난감 재료 분석 전문가입니다. 
-        앞면과 왼쪽 2개 각도에서 촬영된 이미지를 분석하여 종합적인 재료 판별을 내려주세요.
+        앞면, 왼쪽, 뒷면, 오른쪽 4개 각도에서 촬영된 이미지를 분석하여 종합적인 재료 판별을 내려주세요.
         
         분석 결과를 다음 JSON 형식으로만 반환하세요.
         마크다운 코드 블록(```)은 절대 사용하지 마세요.
@@ -56,8 +56,8 @@ class MaterialAgent:
         - 100% 확신하지 못하면 "혼합 소재"로 분류
         
         예시:
-        {"material": "플라스틱", "material_detail": "단일 소재", "confidence": "높음", "notes": "2개 각도 모두 투명한 플라스틱으로만 구성, 100% 확신"}
-        {"material": "플라스틱,천", "material_detail": "혼합 소재", "confidence": "높음", "notes": "2개 각도에서 플라스틱 본체와 천 장식 요소 확인"}
+        {"material": "플라스틱", "material_detail": "단일 소재", "confidence": "높음", "notes": "4개 각도 모두 투명한 플라스틱으로만 구성, 100% 확신"}
+        {"material": "플라스틱,천", "material_detail": "혼합 소재", "confidence": "높음", "notes": "4개 각도에서 플라스틱 본체와 천 장식 요소 확인"}
         {"material": "플라스틱,금속", "material_detail": "혼합 소재", "confidence": "높음", "notes": "플라스틱 본체에 금속 부품(나사, 축) 확인"}
         
         반드시 순수 JSON 형식으로만 답변하세요.
@@ -66,7 +66,7 @@ class MaterialAgent:
         try:
             # Gemini API용 이미지 데이터 준비
             images = []
-            for img_bytes in [front_image, left_image]:
+            for img_bytes in [front_image, left_image, rear_image, right_image]:
                 try:
                     # 바이트 데이터를 PIL Image로 변환
                     import io
@@ -83,7 +83,7 @@ class MaterialAgent:
             response = self.client.generate_content(
                 contents=[
                     system_prompt,
-                    "이 장난감의 재료를 2개 각도에서 분석해주세요.",
+                    "이 장난감의 재료를 4개 각도에서 분석해주세요.",
                     *images
                 ],
                 generation_config=genai.types.GenerationConfig(

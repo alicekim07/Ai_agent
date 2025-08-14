@@ -14,20 +14,22 @@ class SupervisorAgent:
         self.damage_agent = DamageAgent()
         self.soil_agent = SoilAgent()
 
-    def process(self, front_image, left_image):
+    def process(self, front_image, left_image, rear_image, right_image):
         # 0. 각 이미지 크기 최적화
         optimized_front = optimize_image_size(front_image)
         optimized_left = optimize_image_size(left_image)
+        optimized_rear = optimize_image_size(rear_image)
+        optimized_right = optimize_image_size(right_image)
         
-        # 1. 각 개별 에이전트를 병렬로 실행 (2개 이미지 사용)
-        print("개별 에이전트 분석 중... (2개 이미지 통합 분석)")
+        # 1. 각 개별 에이전트를 병렬로 실행 (4개 이미지 사용)
+        print("개별 에이전트 분석 중... (4개 이미지 통합 분석)")
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            # 4개 에이전트를 동시에 실행, 각각 2개 이미지 전달
-            future_type = executor.submit(self.type_agent.analyze, optimized_front, optimized_left)
-            future_material = executor.submit(self.material_agent.analyze, optimized_front, optimized_left)
-            future_damage = executor.submit(self.damage_agent.analyze, optimized_front, optimized_left)
-            future_soil = executor.submit(self.soil_agent.analyze, optimized_front, optimized_left)
+            # 4개 에이전트를 동시에 실행, 각각 4개 이미지 전달
+            future_type = executor.submit(self.type_agent.analyze, optimized_front, optimized_left, optimized_rear, optimized_right)
+            future_material = executor.submit(self.material_agent.analyze, optimized_front, optimized_left, optimized_rear, optimized_right)
+            future_damage = executor.submit(self.damage_agent.analyze, optimized_front, optimized_left, optimized_rear, optimized_right)
+            future_soil = executor.submit(self.soil_agent.analyze, optimized_front, optimized_left, optimized_rear, optimized_right)
             
             # 결과 수집 (타임아웃 30초)
             try:
@@ -38,10 +40,10 @@ class SupervisorAgent:
             except concurrent.futures.TimeoutError:
                 print("일부 에이전트가 타임아웃되었습니다. 순차 처리로 전환합니다.")
                 # 타임아웃 시 순차 처리로 전환
-                type_response, type_tokens = self.type_agent.analyze(optimized_front, optimized_left)
-                material_response, material_tokens = self.material_agent.analyze(optimized_front, optimized_left)
-                damage_response, damage_tokens = self.damage_agent.analyze(optimized_front, optimized_left)
-                soil_response, soil_tokens = self.soil_agent.analyze(optimized_front, optimized_left)
+                type_response, type_tokens = self.type_agent.analyze(optimized_front, optimized_left, optimized_rear, optimized_right)
+                material_response, material_tokens = self.material_agent.analyze(optimized_front, optimized_left, optimized_rear, optimized_right)
+                damage_response, damage_tokens = self.damage_agent.analyze(optimized_front, optimized_left, optimized_rear, optimized_right)
+                soil_response, soil_tokens = self.soil_agent.analyze(optimized_front, optimized_left, optimized_rear, optimized_right)
         
         # 3. JSON 파싱
         try:

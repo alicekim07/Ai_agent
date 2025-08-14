@@ -7,16 +7,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class DamageAgent:
-    def __init__(self, model="gemini-1.5-flash"):
+    def __init__(self, model="gemini-2.5-flash-lite"):
         self.model = model
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.client = genai.GenerativeModel(model_name=self.model)
 
-    def analyze(self, front_image, left_image):
-        # 2개 이미지를 분석하여 파손 상태 판별
+    def analyze(self, front_image, left_image, rear_image, right_image):
+        # 4개 이미지를 분석하여 파손 상태 판별
         system_prompt = """
         당신은 장난감 파손 여부 및 부품 상태 판별 전문가입니다. 
-        앞면과 왼쪽 2개 각도에서 촬영된 이미지를 분석하여 종합적인 판단을 내려주세요.
+        앞면, 왼쪽, 뒷면, 오른쪽 4개 각도에서 촬영된 이미지를 분석하여 종합적인 판단을 내려주세요.
         
         분석 결과를 다음 JSON 형식으로만 반환하세요.
         마크다운 코드 블록(```)은 절대 사용하지 마세요.
@@ -31,6 +31,8 @@ class DamageAgent:
         각도별 분석 지침:
         - 앞면: 전체적인 모양과 주요 부품 상태 파악
         - 왼쪽: 측면 구조와 부품 상태 확인
+        - 뒷면: 뒷면 구조와 부품 상태 확인
+        - 오른쪽: 오른쪽 측면 구조와 부품 상태 확인
         
         ⚠️ **특별 주의사항**:
         - 100% 확신할 때만 "없음"으로 분류
@@ -71,7 +73,7 @@ class DamageAgent:
         try:
             # Gemini API용 이미지 데이터 준비
             images = []
-            for img_bytes in [front_image, left_image]:
+            for img_bytes in [front_image, left_image, rear_image, right_image]:
                 try:
                     # 바이트 데이터를 PIL Image로 변환
                     import io
@@ -88,7 +90,7 @@ class DamageAgent:
             response = self.client.generate_content(
                 contents=[
                     system_prompt,
-                    "이 장난감의 파손 상태와 부품 완전성을 2개 각도에서 분석해주세요. 위의 few-shot 예시를 참고하여 정확하게 분류해주세요.",
+                    "이 장난감의 파손 상태와 부품 완전성을 4개 각도에서 분석해주세요. 위의 few-shot 예시를 참고하여 정확하게 분류해주세요.",
                     *images
                 ],
                 generation_config=genai.types.GenerationConfig(
